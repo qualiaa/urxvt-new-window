@@ -16,7 +16,7 @@ sub on_child_start {
 sub trigger {
     my ($state, $keysym) = @_;
     my $mod_pressed = ($state & $trigger_mod_mask) == $trigger_mod_mask;
-    return ($mod_pressed and ord $trigger_key == $keysym);
+    return $mod_pressed && ord $trigger_key == $keysym;
 }
 
 sub on_key_press {
