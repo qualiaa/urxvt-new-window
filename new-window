@@ -4,23 +4,37 @@ use v5.20;
 use strict;
 use warnings;
 
-my $ctrl_mask = 4;
+# shift => 1, ctrl => 4, alt => 8
+my $trigger_mod_mask = 12;
+my $trigger_key = "n";
 my $pid;
 
 sub on_child_start {
     $pid = $_[1];
 }
 
+sub trigger {
+    my ($state, $keysym) = @_;
+    my $mod_pressed = ($state & $trigger_mod_mask) == $trigger_mod_mask;
+    return ($mod_pressed and ord $trigger_key == $keysym);
+}
+
+sub on_key_press {
+    my %event = %{ $_[1] };
+    my $keysym = $_[2];
+
+    return trigger($event{"state"}, $keysym);
+}
+
 sub on_key_release {
     my %event = %{ $_[1] };
     my $keysym = $_[2];
-    my $ctrl_pressed = $event{"state"} & $ctrl_mask;
 
-    my $cwd = readlink "/proc/$pid/cwd";
+    my $triggered = trigger($event{"state"}, $keysym);
+    if ($triggered) {
+        my $cwd = readlink "/proc/$pid/cwd";
 
-    if ($ctrl_pressed and ord "n" == $keysym) {
-        `urxvt -cd "$cwd" & disown`
+        `urxvt -cd "$cwd" & disown`;
     }
-
-    1;
+    return $triggered;
 }
