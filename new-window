@@ -34,7 +34,7 @@ sub on_key_release {
     if ($triggered) {
         my $cwd = readlink "/proc/$pid/cwd";
 
-        `urxvt -cd "$cwd" & disown`;
+        `urxvt -cd "$cwd" & disown` if -d $cwd
     }
     return $triggered;
 }
